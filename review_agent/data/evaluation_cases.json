@@ -1,0 +1,177 @@
+[
+  {
+    "id": "withdrawal-comparison-reversed",
+    "kind": "bug",
+    "description": "The insufficient-balance comparison was reversed.",
+    "path": "src/wallet.py",
+    "expected_line": 2,
+    "expected_categories": [
+      "logic",
+      "input_validation"
+    ],
+    "required_terms": [
+      "balance"
+    ],
+    "any_terms": [
+      "reversed",
+      "inverted",
+      "less than",
+      "overdraw",
+      "comparison",
+      "insufficient funds"
+    ],
+    "before": "def withdraw(balance, amount):\n    if amount > balance:\n        raise ValueError('Insufficient funds')\n    return balance - amount\n",
+    "after": "def withdraw(balance, amount):\n    if amount < balance:\n        raise ValueError('Insufficient funds')\n    return balance - amount\n"
+  },
+  {
+    "id": "equivalent-comparison",
+    "kind": "clean",
+    "description": "The comparison was rearranged without changing its meaning.",
+    "path": "src/wallet.py",
+    "expected_line": 2,
+    "expected_categories": [],
+    "required_terms": [],
+    "any_terms": [],
+    "before": "def can_withdraw(balance, amount):\n    return amount <= balance\n",
+    "after": "def can_withdraw(balance, amount):\n    return balance >= amount\n"
+  },
+  {
+    "id": "total-subtracts-items",
+    "kind": "bug",
+    "description": "A total calculation was changed from addition to subtraction.",
+    "path": "src/billing.py",
+    "expected_line": 4,
+    "expected_categories": [
+      "logic",
+      "other"
+    ],
+    "required_terms": [
+      "total"
+    ],
+    "any_terms": [
+      "subtract",
+      "subtraction",
+      "decreases",
+      "addition",
+      "sum",
+      "negative"
+    ],
+    "before": "def calculate_total(prices):\n    total = 0\n    for price in prices:\n        total += price\n    return total\n",
+    "after": "def calculate_total(prices):\n    total = 0\n    for price in prices:\n        total -= price\n    return total\n"
+  },
+  {
+    "id": "valid-input-guard-added",
+    "kind": "clean",
+    "description": "A correct guard rejects non-positive amounts.",
+    "path": "src/wallet.py",
+    "expected_line": 2,
+    "expected_categories": [],
+    "required_terms": [],
+    "any_terms": [],
+    "before": "def withdraw(balance, amount):\n    return balance - amount\n",
+    "after": "def withdraw(balance, amount):\n    if amount <= 0:\n        raise ValueError('Amount must be positive')\n    return balance - amount\n"
+  },
+  {
+    "id": "average-off-by-one",
+    "kind": "bug",
+    "description": "The average divisor was changed incorrectly.",
+    "path": "src/stats.py",
+    "expected_line": 2,
+    "expected_categories": [
+      "logic",
+      "error_handling"
+    ],
+    "required_terms": [],
+    "any_terms": [
+      "average",
+      "divisor",
+      "denominator",
+      "division by zero",
+      "off-by-one",
+      "len(values) - 1",
+      "length one"
+    ],
+    "before": "def average(values):\n    return sum(values) / len(values)\n",
+    "after": "def average(values):\n    return sum(values) / (len(values) - 1)\n"
+  },
+  {
+    "id": "variable-rename",
+    "kind": "clean",
+    "description": "A local variable was renamed consistently, without changing behavior.",
+    "path": "src/summary.py",
+    "expected_line": 2,
+    "expected_categories": [],
+    "required_terms": [],
+    "any_terms": [],
+    "before": "def summarize(items):\n    result = []\n    for item in items:\n        result.append(str(item).strip())\n    return result\n",
+    "after": "def summarize(items):\n    cleaned_items = []\n    for item in items:\n        cleaned_items.append(str(item).strip())\n    return cleaned_items\n"
+  },
+  {
+    "id": "first-item-off-by-one",
+    "kind": "bug",
+    "description": "The changed index skips the first element and fails for a one-item list.",
+    "path": "src/collections.py",
+    "expected_line": 2,
+    "expected_categories": [
+      "logic",
+      "other"
+    ],
+    "required_terms": [],
+    "any_terms": [
+      "second",
+      "index 1",
+      "off-by-one",
+      "first element",
+      "first item",
+      "out of range"
+    ],
+    "before": "def first_item(items):\n    return items[0]\n",
+    "after": "def first_item(items):\n    return items[1]\n"
+  },
+  {
+    "id": "missing-await",
+    "kind": "bug",
+    "description": "The changed async call returns a coroutine instead of the user object.",
+    "path": "src/client.py",
+    "expected_line": 2,
+    "expected_categories": [
+      "logic",
+      "error_handling"
+    ],
+    "required_terms": [
+      "user"
+    ],
+    "any_terms": [
+      "await",
+      "coroutine",
+      "attribute",
+      "async"
+    ],
+    "before": "async def fetch_name(client, user_id):\n    user = await client.get_user(user_id)\n    return user.name\n",
+    "after": "async def fetch_name(client, user_id):\n    user = client.get_user(user_id)\n    return user.name\n"
+  },
+  {
+    "id": "private-helper-validates-through-caller",
+    "kind": "clean",
+    "description": "The private helper no longer checks a condition already enforced by its only caller; this case checks use of surrounding context.",
+    "path": "src/service.py",
+    "expected_line": 2,
+    "expected_categories": [],
+    "required_terms": [],
+    "any_terms": [],
+    "before": "def _calculate_fee(amount):\n    if amount < 0:\n        raise ValueError('amount must be non-negative')\n    return amount * 0.05\n\ndef submit_payment(amount):\n    if amount < 0:\n        raise ValueError('amount must be non-negative')\n    return amount + _calculate_fee(amount)\n",
+    "after": "def _calculate_fee(amount):\n    return amount * 0.05 + 0\n\ndef submit_payment(amount):\n    if amount < 0:\n        raise ValueError('amount must be non-negative')\n    return amount + _calculate_fee(amount)\n"
+  },
+  {
+    "id": "preexisting-divide-by-zero-outside-changed-line",
+    "kind": "clean",
+    "description": "A pre-existing divide-by-zero possibility is near the diff but not introduced by the changed line.",
+    "path": "src/format.py",
+    "expected_line": 5,
+    "expected_categories": [],
+    "required_terms": [],
+    "any_terms": [],
+    "before": "def ratio(total, count):\n    return total / count\n\ndef format_label(label):\n    return label.strip()\n",
+    "after": "def ratio(total, count):\n    return total / count\n\ndef format_label(label):\n    return label.strip().title()\n"
+  }
+]
