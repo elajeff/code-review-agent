@@ -115,7 +115,7 @@ def _run_review(args: argparse.Namespace) -> int:
         settings = load_settings()
         diff_text, changed_files = get_python_diff(repo, args.base, max_chars=settings.max_diff_chars)
         if not diff_text.strip() or not changed_files:
-            print("No changed Python lines found for this comparison. Try another --base or check your Git branch.")
+            print("No added Python lines found. Deletion-only changes are not reviewed; check the diff manually or choose another --base.")
             return 0
 
         print(f"Reviewing {len(changed_files)} changed Python file(s) against {args.base} with {settings.gemini_model}...")
