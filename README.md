@@ -36,7 +36,7 @@ Set `GEMINI_API_KEY` in `.env` and choose a `GEMINI_MODEL` available to your acc
 
 ## Run a review
 
-Commit the changes you want reviewed first; uncommitted edits are not included.
+Commit the changes you want reviewed first; uncommitted edits are not included. This version reviews findings on added lines; deletion-only changes are skipped.
 
 ```powershell
 .\.venv\Scripts\python.exe -m review_agent.cli review --repo "C:\path\to\target-repo" --base main
@@ -76,4 +76,4 @@ The examples are a small synthetic development benchmark with a simple label mat
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-The test suite runs offline and does not consume Gemini quota. GitHub Actions runs the same suite on Python 3.11 and 3.13.
+The test suite runs offline and does not consume Gemini quota.

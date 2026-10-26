@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import codecs
 import os
 import re
@@ -21,7 +22,6 @@ class ChangedFile:
     path: str
     diff: str
     changed_lines: set[int] = field(default_factory=set)
-    deleted: bool = False
 
 
 def _run_bounded_diff(repo: Path, command: list[str], max_chars: int) -> str:
@@ -155,18 +155,25 @@ def parse_diff(diff_text: str) -> list[ChangedFile]:
             finish()
             current_new_line = None
             continue
-        if line.startswith("+++ b/"):
-            path = line[6:]
+        if line.startswith("+++ "):
+            path = line[4:]
+            if path.startswith('"'):
+                try:
+                    # Git quotes special characters and UTF-8 bytes as C escapes.
+                    path = ast.literal_eval("b" + path).decode("utf-8")
+                except (SyntaxError, ValueError, UnicodeError):
+                    raise ValueError("Could not decode a quoted Git filename.")
             if path == "/dev/null":
                 continue
+            if not path.startswith("b/"):
+                raise ValueError("Unsupported Git diff filename.")
+            path = path[2:]
             current = ChangedFile(path=path, diff="")
             current_diff = [line]
             continue
         if current is None:
             continue
         current_diff.append(line)
-        if line.startswith("deleted file mode "):
-            current.deleted = True
         match = HUNK.match(line)
         if match:
             current_new_line = int(match.group(1))
@@ -182,4 +189,4 @@ def parse_diff(diff_text: str) -> list[ChangedFile]:
         elif line.startswith(" "):
             current_new_line += 1
     finish()
-    return [item for item in files if not item.deleted and item.changed_lines]
+    return [item for item in files if item.changed_lines]

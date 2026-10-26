@@ -39,7 +39,7 @@ def _tracked_python_files(repo: Path) -> tuple[list[str], bool]:
     """Prefer tracked Python files; fall back to files in temporary fixture repos."""
     try:
         result = subprocess.run(
-            ["git", "ls-files", "-z", "--", "*.py"], cwd=repo,
+            ["git", "ls-tree", "-r", "-z", "--name-only", "HEAD"], cwd=repo,
             capture_output=True, timeout=5,
         )
     except (OSError, subprocess.TimeoutExpired):
@@ -69,7 +69,9 @@ def _tracked_python_files(repo: Path) -> tuple[list[str], bool]:
                 break
     safe = []
     for rel in sorted(set(paths)):
-        if safe_source_path(repo, rel) is not None:
+        if not rel.endswith(".py") or any(part in EXCLUDED_DIRS for part in rel.split("/")):
+            continue
+        if is_git_repo or safe_source_path(repo, rel) is not None:
             safe.append(rel)
     limited = len(safe) > MAX_FILES_TO_SCAN
     return safe[:MAX_FILES_TO_SCAN], limited

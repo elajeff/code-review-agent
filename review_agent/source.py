@@ -97,15 +97,18 @@ def _read_head_file(repo_text: str, commit: str, relative_path: str, max_bytes: 
     """Read one committed blob, cached by commit so later changes cannot go stale."""
     try:
         size_result = subprocess.run(
-            ["git", "cat-file", "-s", f"{commit}:{relative_path}"],
+            ["git", "--literal-pathspecs", "ls-tree", "-l", commit, "--", relative_path],
             cwd=repo_text,
             capture_output=True,
             text=True,
             timeout=3,
         )
-        if size_result.returncode != 0 or not size_result.stdout.strip().isdigit():
+        metadata = size_result.stdout.split("\t", 1)[0].split()
+        if (size_result.returncode != 0 or len(metadata) != 4
+                or metadata[0] not in {"100644", "100755"}
+                or metadata[1] != "blob" or not metadata[3].isdigit()):
             return None
-        if int(size_result.stdout.strip()) > max_bytes:
+        if int(metadata[3]) > max_bytes:
             return None
         result = subprocess.run(
             ["git", "show", f"{commit}:{relative_path}"],
@@ -130,8 +133,7 @@ def read_reviewed_source(
     head_commit: str | None = None,
 ) -> str | None:
     """Read the reviewed commit in Git repos, or disk files in test fixtures."""
-    path = safe_source_path(repo, relative_path)
-    if path is None:
+    if _relative_parts(relative_path) is None:
         return None
     root = repo.resolve()
     normalized_relative = relative_path.replace("\\", "/")
@@ -142,6 +144,9 @@ def read_reviewed_source(
             return None
         return _read_head_file(str(root), commit, normalized_relative, max_bytes)
 
+    path = safe_source_path(repo, relative_path)
+    if path is None:
+        return None
     try:
         if path.stat().st_size > max_bytes:
             return None
