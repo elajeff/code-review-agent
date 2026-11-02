@@ -81,3 +81,7 @@ The examples are a small synthetic development benchmark with a simple label mat
 ```
 
 The test suite runs offline and does not consume Gemini quota.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
