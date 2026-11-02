@@ -1,10 +1,14 @@
 # Code Review Agent
 
-> **Status: Unfinished learning project.** The idea is to make debugging easier by identifying potential defects in changed Python code and showing the source evidence behind each finding. Development and larger-scale evaluation are limited by the quota available on Gemini's free API tier, so this remains a prototype rather than a finished tool.
+A command-line tool that asks Gemini to review the Python changes on a Git branch, then checks every finding against the actual source before reporting it.
+
+Built with Python, the Gemini API and pydantic. The model's suggestions aren't trusted as they come back: a finding must point at a line the change added, quote code that really is there, and describe a concrete condition with expected and actual behavior, or it is rejected and the reason is listed in the report. The test suite runs offline, and ten labeled example diffs are included for measuring changes to the tool.
+
+> **Status:** an unfinished learning project. Larger evaluations are limited by the quota on Gemini's free tier, so this is a prototype rather than a finished tool.
 
 ## What it does
 
-This command-line tool reviews committed Python changes between a base Git ref and `HEAD`. Gemini suggests possible defects; local checks validate source locations and quoted evidence; a bounded context pass can then inspect related code before a report is generated.
+It reviews committed Python changes between a base Git ref and `HEAD`. Gemini suggests possible defects; local checks validate source locations and quoted evidence; a bounded context pass can then inspect related code before a report is generated.
 
 The aim is to surface useful, explainable findings—not to prove every claim or guarantee that a change is bug-free.
 
