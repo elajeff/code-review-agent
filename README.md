@@ -2,13 +2,13 @@
 
 A command-line tool that asks Gemini to review the Python changes on a Git branch, then checks every finding against the actual source before reporting it.
 
-Built with Python, the Gemini API and pydantic. The model's suggestions aren't trusted as they come back: a finding must point at a line the change added, quote code that really is there, and describe a concrete condition with expected and actual behavior, or it is rejected and the reason is listed in the report. The test suite runs offline, and ten labeled example diffs are included for measuring changes to the tool.
+Built with Python, the Gemini API and pydantic. It doesn't take Gemini's findings at face value. A finding has to point at a line the change added, quote code that is really there, and describe a specific case with what should happen and what happens instead. Anything that doesn't is rejected, and the report says why. The tests run offline, and ten labeled example diffs are included for checking whether a change to the tool made it better or worse.
 
 This is an unfinished learning project. Larger evaluations are limited by the quota on Gemini's free tier, so it is a prototype rather than a finished tool.
 
 ## What it does
 
-It reviews committed Python changes between a base Git ref and `HEAD`. Gemini suggests possible defects, local checks validate the source locations and quoted evidence, and a bounded context pass can then look at related code before the report is written. The aim is findings you can read and check, not proof that a change is bug-free.
+It reviews committed Python changes between a base Git ref and `HEAD`. Gemini suggests possible defects, local checks confirm the line numbers and the quoted code, and a limited look at related code can follow before the report is written. The aim is findings you can read and check, not proof that a change is bug-free.
 
 ## How a review works
 
@@ -91,8 +91,8 @@ The tests run offline and don't use any Gemini quota.
 ## Limitations
 
 - P1, P2 and P3 come from the model's own severity estimate. They aren't the probability that a finding is right. Severity and evidence status are reported separately.
-- Context lookup is bounded and understands Python syntax, but it only scans a limited number of tracked Python files and picks up to a few direct-call examples and tests. It can't reliably find every dynamic call, external service or cross-language dependency. The same model does the context check, so it isn't an independent judge.
-- There is no splitting of large changes. A diff over `REVIEW_MAX_DIFF_CHARS` is rejected rather than sent to Gemini, so narrow the review or raise the limit carefully.
+- Context lookup understands Python syntax, but it only scans a limited number of tracked Python files and picks up at most a few call examples and tests. It can't reliably find every dynamic call, external service or cross-language dependency. The same model does the context check, so it isn't an independent judge.
+- Large changes aren't split up. A diff over `REVIEW_MAX_DIFF_CHARS` is rejected rather than sent to Gemini, so narrow the review or raise the limit carefully.
 - Repository tests run project code. Generated reproduction tests are drafts and are never run automatically.
 - A finding is something to look at, not a verdict. An empty report doesn't mean the code has no bugs.
 
